@@ -1,0 +1,15 @@
+﻿<Properties StartupConfiguration="{A3CA3760-D152-4DD4-94D1-39A94043A1C5}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PegBoard.cs">
+    <Files>
+      <File FileName="Program.cs" Line="43" Column="47" />
+      <File FileName="PegBoard.cs" Line="82" Column="14" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.ItemProperties.PegJumper PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>

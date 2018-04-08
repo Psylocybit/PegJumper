@@ -1,0 +1,11 @@
+/Users/SFloyd/Projects/PegJumper/bin/Debug/netcoreapp2.0/PegJumper.deps.json
+/Users/SFloyd/Projects/PegJumper/bin/Debug/netcoreapp2.0/PegJumper.runtimeconfig.json
+/Users/SFloyd/Projects/PegJumper/bin/Debug/netcoreapp2.0/PegJumper.runtimeconfig.dev.json
+/Users/SFloyd/Projects/PegJumper/bin/Debug/netcoreapp2.0/PegJumper.dll
+/Users/SFloyd/Projects/PegJumper/bin/Debug/netcoreapp2.0/PegJumper.pdb
+/Users/SFloyd/Projects/PegJumper/obj/Debug/netcoreapp2.0/PegJumper.csprojResolveAssemblyReference.cache
+/Users/SFloyd/Projects/PegJumper/obj/Debug/netcoreapp2.0/PegJumper.csproj.CoreCompileInputs.cache
+/Users/SFloyd/Projects/PegJumper/obj/Debug/netcoreapp2.0/PegJumper.AssemblyInfoInputs.cache
+/Users/SFloyd/Projects/PegJumper/obj/Debug/netcoreapp2.0/PegJumper.AssemblyInfo.cs
+/Users/SFloyd/Projects/PegJumper/obj/Debug/netcoreapp2.0/PegJumper.dll
+/Users/SFloyd/Projects/PegJumper/obj/Debug/netcoreapp2.0/PegJumper.pdb
