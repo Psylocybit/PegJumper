@@ -2,7 +2,7 @@
 
 namespace PegJumper
 {
-    public class PegHole
+    public struct PegHole
     {
         public int Row, Column;
         public int Number;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace PegJumper
@@ -49,7 +50,7 @@ namespace PegJumper
      * If trying to move peg, p, to hole, d, then:
      *      The row of d must be the same as row of p or p +- 2 where p +- 2 >= 0 and <= peg row count - 2
      */
-    public sealed class PegBoard
+    public class PegBoard : ICloneable
     {
         internal const int MinimumRowCount = 5;
         internal const int DefaultEmptyHole = 1;
@@ -84,15 +85,30 @@ namespace PegJumper
             }
 
             this.HoleCount = holeIndex - 1;
+
+            this.StartingHole = emptyHole;
         }
 
-        public int HoleCount { get; }
+        private PegBoard(PegHole[][] pegHoles)
+        {
+            this.holes = pegHoles.Select(s => s.ToArray()).ToArray();
+            //source.Select(s => s.ToArray()).ToArray();
+
+            // Calculate other variables. For now this is just for ICloneable.
+        }
+
+        public int StartingHole { get; }
+
+        public int RowCount => this.holes.Length;
+
+        public int HoleCount { get; private set; }
 
         public int PegCount { get; private set; }
 
-        public PegHole TryMovePeg(int target, int destination, bool check = false)
+        public PegHole? TryMovePeg(int target, int destination, bool check = false)
         {
-            PegHole targetHole, middleHole, destinationHole;
+            PegHole targetHole, destinationHole;
+            PegHole? middleHole = null;
 
             // Make sure target & destination peg holes are within bounds.
             if (target <= 0 || destination <= 0 || target == destination)
@@ -109,8 +125,6 @@ namespace PegJumper
             // Make sure the destination peg hole is valid and empty.
             if (destinationHole.HasPeg)
                 return null;
-
-            middleHole = null;
 
             if (destinationHole.Row == targetHole.Row)
             {
@@ -139,11 +153,11 @@ namespace PegJumper
                 }
             }
 
-            if (!check && middleHole != null)
+            if (!check && (middleHole?.HasPeg ?? false))
             {
-                targetHole.HasPeg = false;
-                middleHole.HasPeg = false;
-                destinationHole.HasPeg = true;
+                this.holes[targetHole.Row][targetHole.Column].HasPeg = false;
+                this.holes[middleHole.Value.Row][middleHole.Value.Column].HasPeg = false;
+                this.holes[destinationHole.Row][destinationHole.Column].HasPeg = true;
                 this.PegCount--;
             }
 
@@ -156,7 +170,7 @@ namespace PegJumper
             {
                 for (int c = 0; c < holes[r].Length; c++)
                 {
-                    var possibleMoves = GetPossibleMoves(holes[r][c]);
+                    var possibleMoves = GetPossibleMoves(r, c);
 
                     foreach (var move in possibleMoves)
                     {
@@ -166,11 +180,12 @@ namespace PegJumper
             }
         }
 
-        internal IEnumerable<PegBoardMove> GetPossibleMoves(PegHole peg)
+        internal IEnumerable<PegBoardMove> GetPossibleMoves(int row, int col)
         {
             PegBoardMove move;
-            var r = peg.Row;
-            var c = peg.Column;
+
+            var r = row;
+            var c = col;
 
             // left
             if (c - 2 >= 0)
@@ -181,7 +196,7 @@ namespace PegJumper
 
                 if (possibility?.HasPeg ?? false)
                 {
-                    move.Popped = possibility.Number;
+                    move.Popped = possibility.Value.Number;
                     yield return move;
                 }
             }
@@ -195,7 +210,7 @@ namespace PegJumper
 
                 if (possibility?.HasPeg ?? false)
                 {
-                    move.Popped = possibility.Number;
+                    move.Popped = possibility.Value.Number;
                     yield return move;
                 }
             }
@@ -213,7 +228,7 @@ namespace PegJumper
 
                     if (possibility?.HasPeg ?? false)
                     {
-                        move.Popped = possibility.Number;
+                        move.Popped = possibility.Value.Number;
                         yield return move;
                     }
                 }
@@ -232,7 +247,7 @@ namespace PegJumper
 
                     if (possibility?.HasPeg ?? false)
                     {
-                        move.Popped = possibility.Number;
+                        move.Popped = possibility.Value.Number;
                         yield return move;
                     }
                 }
@@ -255,7 +270,7 @@ namespace PegJumper
                 }
             }
 
-            return null;
+            throw new Exception("Invalid target hole.");
         }
 
         public override string ToString()
@@ -280,6 +295,15 @@ namespace PegJumper
             }
 
             return stringBuilder.ToString();
+        }
+
+        public object Clone()
+        {
+            return new PegBoard(this.holes)
+            {
+                PegCount = this.PegCount,
+                HoleCount = this.HoleCount
+            };
         }
     }
 }
