@@ -4,26 +4,17 @@ using System.Text;
 
 namespace PegJumper
 {
-    public class PegHole
+    internal struct PegBoardMove
     {
-        public int Row, Column;
-        public int Number;
-        public bool HasPeg;
+        #region Fields
 
-        public PegHole(int row, int column, int number, bool hasPeg)
-        {
-            this.Row = row;
-            this.Column = column;
-            this.Number = number;
-            this.HasPeg = hasPeg;
-        }
-    }
-
-    public struct PegBoardMove
-    {
         public int Start;
         public int End;
         public int Popped;
+
+        #endregion
+
+        #region Constructors
 
         public PegBoardMove(int start, int end, int popped)
         {
@@ -34,15 +25,43 @@ namespace PegJumper
 
         public PegBoardMove(int start, int end) : this(start, end, 0)
         { }
+
+        #endregion
     }
 
+    /*
+     * Example peg board (5):
+     * 
+     *          o   <--- peg 1 (index 0)
+     *         x x
+     *        x x x
+     *       x x x x
+     *      x x x x x
+     * 
+     * Example peg move options:
+     * 
+     *          o   o      <--- Row above (x2)
+     *           - -       <--- Row above (x1)
+     *        o - x - o    <--- Same row
+     *           - -       <--- Row below (x1)
+     *          o   o      <--- Row below (x2)
+     * 
+     * If trying to move peg, p, to hole, d, then:
+     *      The row of d must be the same as row of p or p +- 2 where p +- 2 >= 0 and <= peg row count - 2
+     */
     public sealed class PegBoard
     {
         private const int MinimumRowCount = 5;
         private const int DefaultEmptyHole = 1;
         private const int MoveDistance = 2;
 
+        #region Fields
+
         private PegHole[][] holes;
+
+        #endregion
+
+        #region Constructors
 
         public PegBoard(int rows = MinimumRowCount, int emptyHole = DefaultEmptyHole)
         {
@@ -73,30 +92,18 @@ namespace PegJumper
             this.HoleCount = holeIndex - 1;
         }
 
+        #endregion
+
+        #region Properties
+
         public int HoleCount { get; }
 
         public int PegCount { get; private set; }
 
-        /*
-         * Example peg board (5):
-         * 
-         *          o   <--- peg 1 (index 0)
-         *         x x
-         *        x x x
-         *       x x x x
-         *      x x x x x
-         * 
-         * Example peg move options:
-         * 
-         *          o   o      <--- Row above (x2)
-         *           - -       <--- Row above (x1)
-         *        o - x - o    <--- Same row
-         *           - -       <--- Row below (x1)
-         *          o   o      <--- Row below (x2)
-         * 
-         * If trying to move peg, p, to hole, d, then:
-         *      The row of d must be the same as row of p or p +- 2 where p +- 2 >= 0 and <= peg row count - 2
-         */
+        #endregion
+
+        #region Methods
+
         public PegHole TryMovePeg(int target, int destination, bool check = false)
         {
             PegHole targetHole, middleHole, destinationHole;
@@ -122,18 +129,18 @@ namespace PegJumper
             if (destinationHole.Row == targetHole.Row)
             {
                 // The destination hole is on the same row as the target hole.
-                var distance = destinationHole.Column - targetHole.Column;
+                int distance = destinationHole.Column - targetHole.Column;
 
                 if (Math.Abs(distance) == MoveDistance)
                 {
-                    var middleOffset = distance > 0 ? -1 : 1;
+                    int middleOffset = distance > 0 ? -1 : 1;
                     middleHole = GetPegHole(destination + middleOffset);
                 }
             }
             else
             {
                 // The destination hole is on a row above or below the target hole.
-                var distance = destinationHole.Row - targetHole.Row;
+                int distance = destinationHole.Row - targetHole.Row;
 
                 if (Math.Abs(distance) == MoveDistance)
                 {
@@ -157,7 +164,7 @@ namespace PegJumper
             return middleHole;
         }
 
-        public List<PegBoardMove> GetAllPossibleMoves()
+        internal List<PegBoardMove> GetAllPossibleMoves()
         {
             var moves = new List<PegBoardMove>();
 
@@ -173,7 +180,7 @@ namespace PegJumper
             return moves;
         }
 
-        private IEnumerable<PegBoardMove> GetPossibleMoves(PegHole peg)
+        internal IEnumerable<PegBoardMove> GetPossibleMoves(PegHole peg)
         {
             var r = peg.Row;
             var c = peg.Column;
@@ -321,5 +328,7 @@ namespace PegJumper
 
             return stringBuilder.ToString();
         }
+
+        #endregion
     }
 }

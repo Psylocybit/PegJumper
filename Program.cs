@@ -13,6 +13,8 @@ namespace PegJumper
         {
             var rand = new Random();
 
+            // Need a PegBoardSolver class with solve options
+            // var solver = new PegBoardSolver(...);
             var board = new PegBoard(Width, 1);
             var originalBoard = board.ToString();
 
@@ -21,8 +23,8 @@ namespace PegJumper
             var winIdents = new List<string>();
             var winIdentBuilder = new StringBuilder();
 
-            var highMoveCount = 0;
-            var lowMoveCount = int.MaxValue;
+            int highMoveCount = 0;
+            int lowMoveCount = int.MaxValue;
 
             var actualMoves = new List<PegBoardMove>();
 
@@ -30,6 +32,7 @@ namespace PegJumper
             {
                 board = new PegBoard(Width, 1);
 
+                // Hmmm...
                 while (true)
                 {
                     var possibleMoves = board.GetAllPossibleMoves();
@@ -38,7 +41,7 @@ namespace PegJumper
                     {
                         if (board.PegCount == 1)
                         {
-                            var unique = true;
+                            bool unique = true;
 
                             foreach (var ident in winIdents)
                             {
