@@ -5,11 +5,11 @@ using System.Text;
 
 namespace PegJumper
 {
-    class Program
+    public sealed class Program
     {
-        static int Width = 5;
+        private const int Width = 5;
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var rand = new Random();
 
@@ -36,8 +36,9 @@ namespace PegJumper
                 while (true)
                 {
                     var possibleMoves = board.GetAllPossibleMoves();
+                    var movesList = new List<PegBoardMove>(possibleMoves);
 
-                    if (possibleMoves.Count == 0)
+                    if (movesList.Count == 0)
                     {
                         if (board.PegCount == 1)
                         {
@@ -67,7 +68,7 @@ namespace PegJumper
                         break;
                     }
 
-                    var choiceMove = possibleMoves[rand.Next(possibleMoves.Count - 1)];
+                    var choiceMove = movesList[rand.Next(movesList.Count - 1)];
                     board.TryMovePeg(choiceMove.Start, choiceMove.End);
                     actualMoves.Add(choiceMove);
 

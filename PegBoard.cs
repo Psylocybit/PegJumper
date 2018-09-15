@@ -4,29 +4,29 @@ using System.Text;
 
 namespace PegJumper
 {
+    // Not used at the moment
+    internal enum PegBoardRelation
+    {
+        None,
+        All,
+        Left,
+        Right,
+        Above,
+        Below
+    }
+
     internal struct PegBoardMove
     {
-        #region Fields
-
         public int Start;
         public int End;
         public int Popped;
 
-        #endregion
-
-        #region Constructors
-
-        public PegBoardMove(int start, int end, int popped)
+        public PegBoardMove(int start, int end = -1, int popped = -1)
         {
             this.Start = start;
             this.End = end;
             this.Popped = popped;
         }
-
-        public PegBoardMove(int start, int end) : this(start, end, 0)
-        { }
-
-        #endregion
     }
 
     /*
@@ -51,17 +51,11 @@ namespace PegJumper
      */
     public sealed class PegBoard
     {
-        private const int MinimumRowCount = 5;
-        private const int DefaultEmptyHole = 1;
-        private const int MoveDistance = 2;
-
-        #region Fields
+        internal const int MinimumRowCount = 5;
+        internal const int DefaultEmptyHole = 1;
+        internal const int MoveDistance = 2;
 
         private PegHole[][] holes;
-
-        #endregion
-
-        #region Constructors
 
         public PegBoard(int rows = MinimumRowCount, int emptyHole = DefaultEmptyHole)
         {
@@ -92,17 +86,9 @@ namespace PegJumper
             this.HoleCount = holeIndex - 1;
         }
 
-        #endregion
-
-        #region Properties
-
         public int HoleCount { get; }
 
         public int PegCount { get; private set; }
-
-        #endregion
-
-        #region Methods
 
         public PegHole TryMovePeg(int target, int destination, bool check = false)
         {
@@ -164,96 +150,71 @@ namespace PegJumper
             return middleHole;
         }
 
-        internal List<PegBoardMove> GetAllPossibleMoves()
+        internal IEnumerable<PegBoardMove> GetAllPossibleMoves()
         {
-            var moves = new List<PegBoardMove>();
-
             for (int r = 0; r < holes.Length; r++)
             {
                 for (int c = 0; c < holes[r].Length; c++)
                 {
                     var possibleMoves = GetPossibleMoves(holes[r][c]);
-                    moves.AddRange(possibleMoves);
+
+                    foreach (var move in possibleMoves)
+                    {
+                        yield return move;
+                    }
                 }
             }
-
-            return moves;
         }
 
         internal IEnumerable<PegBoardMove> GetPossibleMoves(PegHole peg)
         {
+            PegBoardMove move;
             var r = peg.Row;
             var c = peg.Column;
-
-            var moves = new List<PegBoardMove>();
 
             // left
             if (c - 2 >= 0)
             {
-                var move = new PegBoardMove
+                move = new PegBoardMove(holes[r][c].Number, holes[r][c - 2].Number);
+
+                var possibility = TryMovePeg(move.Start, move.End, check: true);
+
+                if (possibility?.HasPeg ?? false)
                 {
-                    Start = holes[r][c].Number,
-                    Popped = -1
-                };
-
-                move.End = holes[r][c - 2].Number;
-                var possibility = TryMovePeg(move.Start, move.End, true);
-
-                if (possibility != null)
-                {
-                    if (possibility.HasPeg)
-                    {
-                        move.Popped = possibility.Number;
-                        moves.Add(move);
-                    }
-
+                    move.Popped = possibility.Number;
+                    yield return move;
                 }
             }
 
             // right
             if (c + 2 < holes[r].Length)
             {
-                var move = new PegBoardMove
+                move = new PegBoardMove(holes[r][c].Number, holes[r][c + 2].Number);
+
+                var possibility = TryMovePeg(move.Start, move.End, check: true);
+
+                if (possibility?.HasPeg ?? false)
                 {
-                    Start = holes[r][c].Number,
-                    Popped = -1
-                };
-
-                move.End = holes[r][c + 2].Number;
-                var possibility = TryMovePeg(move.Start, move.End, true);
-
-                if (possibility != null)
-                {
-                    if (possibility.HasPeg)
-                    {
-                        move.Popped = possibility.Number;
-                        moves.Add(move);
-                    }
-
+                    move.Popped = possibility.Number;
+                    yield return move;
                 }
             }
 
             // above
             if (r + 2 < holes.Length)
             {
-                var move = new PegBoardMove
-                {
-                    Start = holes[r][c].Number,
-                    Popped = -1
-                };
+                move = new PegBoardMove(holes[r][c].Number);
 
                 for (int nc = 0; nc < holes[r + 2].Length; nc++)
                 {
                     move.End = holes[r + 2][nc].Number;
-                    var possibility = TryMovePeg(move.Start, move.End, true);
 
-                    if (possibility != null)
+                    var possibility = TryMovePeg(move.Start, move.End, check: true);
+
+                    if (possibility?.HasPeg ?? false)
                     {
-                        if (possibility.HasPeg)
-                        {
-                            move.Popped = possibility.Number;
-                            moves.Add(move);
-                        }
+                        move.Popped = possibility.Number;
+                        yield return move;
                     }
                 }
             }
@@ -261,29 +222,21 @@ namespace PegJumper
             // below
             if (r - 2 >= 0)
             {
-                var move = new PegBoardMove
-                {
-                    Start = holes[r][c].Number,
-                    Popped = -1
-                };
+                move = new PegBoardMove(holes[r][c].Number);
 
                 for (int nc = 0; nc < holes[r - 2].Length; nc++)
                 {
                     move.End = holes[r - 2][nc].Number;
-                    var possibility = TryMovePeg(move.Start, move.End, true);
 
-                    if (possibility != null)
+                    var possibility = TryMovePeg(move.Start, move.End, check: true);
+
+                    if (possibility?.HasPeg ?? false)
                     {
-                        if (possibility.HasPeg)
-                        {
-                            move.Popped = possibility.Number;
-                            moves.Add(move);
-                        }
+                        move.Popped = possibility.Number;
+                        yield return move;
                     }
                 }
             }
-
-            return moves;
         }
 
         private PegHole GetPegHole(int targetHole)
@@ -328,7 +281,5 @@ namespace PegJumper
 
             return stringBuilder.ToString();
         }
-
-        #endregion
     }
 }

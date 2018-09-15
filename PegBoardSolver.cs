@@ -2,12 +2,16 @@
 
 namespace PegJumper
 {
-    // TODO
     public class PegBoardSolver
     {
-        public PegBoardSolver()
+        private PegBoard pegBoard;
+
+        public PegBoardSolver() : this(new PegBoard())
+        { }
+
+        public PegBoardSolver(PegBoard board)
         {
-            // :^)
+            this.pegBoard = board;
         }
     }
 }
