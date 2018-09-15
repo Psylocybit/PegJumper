@@ -32,13 +32,11 @@ namespace PegJumper
 
                 while (true)
                 {
-                    var pegCount = board.PegCount;
-
                     var possibleMoves = board.GetAllPossibleMoves();
 
                     if (possibleMoves.Count == 0)
                     {
-                        if (pegCount == 1)
+                        if (board.PegCount == 1)
                         {
                             var unique = true;
 

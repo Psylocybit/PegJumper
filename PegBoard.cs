@@ -4,28 +4,36 @@ using System.Text;
 
 namespace PegJumper
 {
-    // Temporary data class to reduce use of excess looping.
     public class PegHole
     {
-        public PegHole(int number, bool hasPeg, int row, int column)
-        {
-            Number = number;
-            HasPeg = hasPeg;
-            Row = row;
-            Column = column;
-        }
-
+        public int Row, Column;
         public int Number;
         public bool HasPeg;
-        public int Row;
-        public int Column;
+
+        public PegHole(int row, int column, int number, bool hasPeg)
+        {
+            this.Row = row;
+            this.Column = column;
+            this.Number = number;
+            this.HasPeg = hasPeg;
+        }
     }
 
     public struct PegBoardMove
     {
         public int Start;
-        public int Popped;
         public int End;
+        public int Popped;
+
+        public PegBoardMove(int start, int end, int popped)
+        {
+            this.Start = start;
+            this.End = end;
+            this.Popped = popped;
+        }
+
+        public PegBoardMove(int start, int end) : this(start, end, 0)
+        { }
     }
 
     public sealed class PegBoard
@@ -38,49 +46,36 @@ namespace PegJumper
 
         public PegBoard(int rows = MinimumRowCount, int emptyHole = DefaultEmptyHole)
         {
-            //if (rows < MinimumRowCount)
-            //        holes = new PegHole[MinimumRowCount][];
-            //    else
-                    holes = new PegHole[rows][];
+            this.holes = new PegHole[rows][];
+            this.PegCount = 0;
 
             int holeIndex = 1;
             int holesPerRow = 1;
+
             for (int r = 0; r < rows; r++)
             {
                 holes[r] = new PegHole[holesPerRow];
 
                 for (int c = 0; c < holesPerRow; c++)
                 {
-                    holes[r][c] = new PegHole(holeIndex, holeIndex != emptyHole, r, c);
+                    var hasPeg = holeIndex != emptyHole;
+
+                    if (hasPeg)
+                        this.PegCount++;
+
+                    this.holes[r][c] = new PegHole(r, c, holeIndex, hasPeg);
                     holeIndex++;
                 }
 
                 holesPerRow++;
             }
 
-            HoleCount = holeIndex - 1;
+            this.HoleCount = holeIndex - 1;
         }
 
         public int HoleCount { get; }
 
-        public int PegCount
-        {
-            get
-            {
-                int pegs = 0;
-
-                for (int r = 0; r < holes.Length; r++)
-                {
-                    for (int c = 0; c < holes[r].Length; c++)
-                    {
-                        if (holes[r][c].HasPeg)
-                            pegs++;
-                    }
-                }
-
-                return pegs;
-            }
-        }
+        public int PegCount { get; private set; }
 
         /*
          * Example peg board (5):
@@ -123,38 +118,27 @@ namespace PegJumper
                 return null;
 
             middleHole = null;
-            
+
             if (destinationHole.Row == targetHole.Row)
             {
                 // The destination hole is on the same row as the target hole.
-                int distance = destinationHole.Column - targetHole.Column;
+                var distance = destinationHole.Column - targetHole.Column;
 
                 if (Math.Abs(distance) == MoveDistance)
                 {
-                    int middleOffset;
-
-                    if (distance > 0)
-                        middleOffset = -1;
-                    else
-                        middleOffset = 1;
-
+                    var middleOffset = distance > 0 ? -1 : 1;
                     middleHole = GetPegHole(destination + middleOffset);
                 }
             }
             else
             {
                 // The destination hole is on a row above or below the target hole.
-                int distance = destinationHole.Row - targetHole.Row;
+                var distance = destinationHole.Row - targetHole.Row;
 
                 if (Math.Abs(distance) == MoveDistance)
                 {
-                    int middleOffset;
+                    int middleOffset = distance > 0 ? 1 : -1;
 
-                    if (distance > 0)
-                        middleOffset = 1;
-                    else
-                        middleOffset = -1;
-                    
                     if (destinationHole.Column == targetHole.Column)
                         middleHole = holes[targetHole.Row + middleOffset][targetHole.Column];
                     else if (destinationHole.Column == targetHole.Column + distance)
@@ -167,6 +151,7 @@ namespace PegJumper
                 targetHole.HasPeg = false;
                 middleHole.HasPeg = false;
                 destinationHole.HasPeg = true;
+                this.PegCount--;
             }
 
             return middleHole;
@@ -180,75 +165,112 @@ namespace PegJumper
             {
                 for (int c = 0; c < holes[r].Length; c++)
                 {
-                    var move = new PegBoardMove();
-                    move.Start = holes[r][c].Number;
-                    move.Popped = -1;
+                    var possibleMoves = GetPossibleMoves(holes[r][c]);
+                    moves.AddRange(possibleMoves);
+                }
+            }
 
-                    // left
-                    if (c - 2 >= 0)
+            return moves;
+        }
+
+        private IEnumerable<PegBoardMove> GetPossibleMoves(PegHole peg)
+        {
+            var r = peg.Row;
+            var c = peg.Column;
+
+            var moves = new List<PegBoardMove>();
+
+            // left
+            if (c - 2 >= 0)
+            {
+                var move = new PegBoardMove
+                {
+                    Start = holes[r][c].Number,
+                    Popped = -1
+                };
+
+                move.End = holes[r][c - 2].Number;
+                var possibility = TryMovePeg(move.Start, move.End, true);
+
+                if (possibility != null)
+                {
+                    if (possibility.HasPeg)
                     {
-                        move.End = holes[r][c - 2].Number;
-                        var possibility = TryMovePeg(move.Start, move.End, true);
-
-                        if (possibility != null)
-                        {
-                            if (possibility.HasPeg)
-                            {
-                                move.Popped = possibility.Number;
-                                moves.Add(move);
-                            }
-
-                        }
+                        move.Popped = possibility.Number;
+                        moves.Add(move);
                     }
 
-                    // right
-                    if (c + 2 < holes[r].Length)
+                }
+            }
+
+            // right
+            if (c + 2 < holes[r].Length)
+            {
+                var move = new PegBoardMove
+                {
+                    Start = holes[r][c].Number,
+                    Popped = -1
+                };
+
+                move.End = holes[r][c + 2].Number;
+                var possibility = TryMovePeg(move.Start, move.End, true);
+
+                if (possibility != null)
+                {
+                    if (possibility.HasPeg)
                     {
-                        move.End = holes[r][c + 2].Number;
-                        var possibility = TryMovePeg(move.Start, move.End, true);
-
-                        if (possibility != null)
-                        {
-                            if (possibility.HasPeg)
-                            {
-                                move.Popped = possibility.Number;
-                                moves.Add(move);
-                            }
-
-                        }
+                        move.Popped = possibility.Number;
+                        moves.Add(move);
                     }
 
-                    // above
-                    if (r + 2 < holes.Length)
-                    for (int nc = 0; nc < holes[r + 2].Length; nc++)
-                    {
-                        move.End = holes[r + 2][nc].Number;
-                        var possibility = TryMovePeg(move.Start, move.End, true);
+                }
+            }
 
-                        if (possibility != null)
+            // above
+            if (r + 2 < holes.Length)
+            {
+                var move = new PegBoardMove
+                {
+                    Start = holes[r][c].Number,
+                    Popped = -1
+                };
+
+                for (int nc = 0; nc < holes[r + 2].Length; nc++)
+                {
+                    move.End = holes[r + 2][nc].Number;
+                    var possibility = TryMovePeg(move.Start, move.End, true);
+
+                    if (possibility != null)
+                    {
+                        if (possibility.HasPeg)
                         {
-                            if (possibility.HasPeg)
-                            {
-                                move.Popped = possibility.Number;
-                                moves.Add(move);
-                            }
+                            move.Popped = possibility.Number;
+                            moves.Add(move);
                         }
                     }
+                }
+            }
 
-                    // below
-                    if (r - 2 >= 0)
-                    for (int nc = 0; nc < holes[r - 2].Length; nc++)
+            // below
+            if (r - 2 >= 0)
+            {
+                var move = new PegBoardMove
+                {
+                    Start = holes[r][c].Number,
+                    Popped = -1
+                };
+
+                for (int nc = 0; nc < holes[r - 2].Length; nc++)
+                {
+                    move.End = holes[r - 2][nc].Number;
+                    var possibility = TryMovePeg(move.Start, move.End, true);
+
+                    if (possibility != null)
                     {
-                        move.End = holes[r - 2][nc].Number;
-                        var possibility = TryMovePeg(move.Start, move.End, true);
-
-                        if (possibility != null)
+                        if (possibility.HasPeg)
                         {
-                            if (possibility.HasPeg)
-                            {
-                                move.Popped = possibility.Number;
-                                moves.Add(move);
-                            }
+                            move.Popped = possibility.Number;
+                            moves.Add(move);
                         }
                     }
                 }
