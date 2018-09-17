@@ -5,17 +5,6 @@ using System.Text;
 
 namespace PegJumper
 {
-    // Not used at the moment
-    internal enum PegBoardRelation
-    {
-        None,
-        All,
-        Left,
-        Right,
-        Above,
-        Below
-    }
-
     internal struct PegBoardMove
     {
         public int Start;
@@ -85,21 +74,14 @@ namespace PegJumper
             }
 
             this.HoleCount = holeIndex - 1;
-
-            this.StartingHole = emptyHole;
         }
 
         private PegBoard(PegHole[][] pegHoles)
         {
             this.holes = pegHoles.Select(s => s.ToArray()).ToArray();
-            //source.Select(s => s.ToArray()).ToArray();
 
-            // Calculate other variables. For now this is just for ICloneable.
+            // For now this is just for ICloneable.
         }
-
-        public int StartingHole { get; }
-
-        public int RowCount => this.holes.Length;
 
         public int HoleCount { get; private set; }
 
